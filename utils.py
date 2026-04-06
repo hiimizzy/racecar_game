@@ -14,6 +14,6 @@ def blit_rotate_center(win, image, top_left, angle):
 
 # Desenha o texto centralizado na tela
 def blit_text_center(win, font, text):
-    render = font.render(text, 1, (100, 100, 100))
+    render = font.render(text, 1, (100, 100, 100)) # Renderiza o texto usando a fonte e a cor especificada
     win.blit(render, (win.get_width()/2 - render.get_width() /
                       2, win.get_height()/2 - render.get_height()/2))

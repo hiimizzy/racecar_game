@@ -48,7 +48,7 @@ class AbstractCar:
     def rotate(self, left=False, right=False):
         if left:
             self.angle += self.rotation_vel
-        elif right:
+        elif right: 
             self.angle -= self.rotation_vel
 # Função para desenhar o carro na janela, utilizando a função blit_rotate_center para rotacionar a imagem do carro 
     def draw(self, win):
@@ -89,7 +89,7 @@ class PlayerCar(AbstractCar):
 
     def reduce_speed(self):
         self.vel = max(self.vel - self.acceleration / 2, 0)
-        self.move()
+        self.move() 
 
     def bounce(self):
         self.vel = -self.vel
@@ -113,12 +113,12 @@ class ComputerCar(AbstractCar):
     def draw(self, win):
         super().draw(win)
         # self.draw_points(win)
-
+# Função para calcular o ângulo necessário para o carro do computador seguir o caminho pré-definido
     def calculate_angle(self):
         target_x, target_y = self.path[self.current_point]
         x_diff = target_x - self.x
         y_diff = target_y - self.y
-
+#
         if y_diff == 0:
             desired_radian_angle = math.pi / 2
         else:
@@ -138,7 +138,7 @@ class ComputerCar(AbstractCar):
 # Função para atualizar o ponto de destino do carro do computador, verificando se ele colidiu com o ponto atual e, 
 # em caso afirmativo, avançando para o próximo ponto do caminho
     def update_path_point(self):
-        target = self.path[self.current_point]
+        target = self.path[self.current_point] # Obtém o ponto de destino atual do caminho
         rect = pygame.Rect(
             self.x, self.y, self.img.get_width(), self.img.get_height())
         if rect.collidepoint(*target):
@@ -149,8 +149,8 @@ class ComputerCar(AbstractCar):
             return
 
         self.calculate_angle()
-        self.update_path_point()
-        super().move()
+        self.update_path_point() # Atualiza o ponto do caminho para o carro
+        super().move() # Chama a função de movimento da classe pai (AbstractCar) para atualizar a posição do carro com base na velocidade e no ângulo
 
     def next_level(self, level):
         self.reset()
@@ -255,9 +255,8 @@ while run:
             run = False
             break
 
-    move_player(player_car)
-    computer_car.move()
-
+    move_player(player_car) # Chama a função para mover o carro do jogador, verificando as teclas pressionadas e atualizando a posição do carro de acordo
+    computer_car.move() # Chama a função para mover o carro do computador
     handle_collision(player_car, computer_car, game_info)
 
     if game_info.game_finished():
