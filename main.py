@@ -5,6 +5,7 @@ from utils import scale_image, blit_rotate_center, blit_text_center
 
 pygame.font.init()
 
+# Carregar as imagens
 GRASS = scale_image(pygame.image.load("assets/grass.jpg"), 2.5)
 TRACK = scale_image(pygame.image.load("assets/track.png"), 0.9)
 
@@ -24,11 +25,13 @@ pygame.display.set_caption("Racing Game!")
 
 MAIN_FONT = pygame.font.SysFont("Arial", 20)
 
+# Configurações do jogo
 FPS = 60
+# Caminho para o carro do computador seguir
 PATH = [(175, 119), (110, 70), (56, 133), (70, 481), (318, 731), (404, 680), (418, 521), (507, 475), (600, 551), (613, 715), (736, 713),
         (734, 399), (611, 357), (409, 343), (433, 257), (697, 258), (738, 123), (581, 71), (303, 78), (275, 377), (176, 388), (178, 260)]
 
-
+# Classe para armazenar informações do jogo, como o nível atual, se o nível foi iniciado e o tempo de início do nível
 class GameInfo:
     LEVELS = 10
 
@@ -58,7 +61,7 @@ class GameInfo:
             return 0
         return round(time.time() - self.level_start_time)
 
-
+# Classe para representar um carro genérico, com funcionalidades comuns para o carro do jogador e o carro do computador
 class AbstractCar:
     def __init__(self, max_vel, rotation_vel):
         self.img = self.IMG
@@ -68,13 +71,13 @@ class AbstractCar:
         self.angle = 0
         self.x, self.y = self.START_POS
         self.acceleration = 0.1
-
+# Função para rotacionar o carro para a esquerda ou para a direita, dependendo dos parâmetros passados
     def rotate(self, left=False, right=False):
         if left:
             self.angle += self.rotation_vel
         elif right:
             self.angle -= self.rotation_vel
-
+# Função para desenhar o carro na janela, utilizando a função blit_rotate_center para rotacionar a imagem do carro 
     def draw(self, win):
         blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
 
@@ -105,7 +108,8 @@ class AbstractCar:
         self.angle = 0
         self.vel = 0
 
-
+# Classe para representar o carro do jogador, com funcionalidades específicas para o controle do jogador, 
+# como reduzir a velocidade e rebater ao colidir com a borda da pista
 class PlayerCar(AbstractCar):
     IMG = RED_CAR
     START_POS = (180, 200)
@@ -118,7 +122,7 @@ class PlayerCar(AbstractCar):
         self.vel = -self.vel
         self.move()
 
-
+# Classe para representar o carro do computador, com funcionalidades específicas para seguir um caminho pré-definido,
 class ComputerCar(AbstractCar):
     IMG = GREEN_CAR
     START_POS = (150, 200)
@@ -158,14 +162,15 @@ class ComputerCar(AbstractCar):
             self.angle -= min(self.rotation_vel, abs(difference_in_angle))
         else:
             self.angle += min(self.rotation_vel, abs(difference_in_angle))
-
+# Função para atualizar o ponto de destino do carro do computador, verificando se ele colidiu com o ponto atual e, 
+# em caso afirmativo, avançando para o próximo ponto do caminho
     def update_path_point(self):
         target = self.path[self.current_point]
         rect = pygame.Rect(
             self.x, self.y, self.img.get_width(), self.img.get_height())
         if rect.collidepoint(*target):
             self.current_point += 1
-
+# Função para mover o carro do computador, calculando o ângulo necessário para seguir o caminho e atualizando o ponto de destino
     def move(self):
         if self.current_point >= len(self.path):
             return
@@ -179,7 +184,8 @@ class ComputerCar(AbstractCar):
         self.vel = self.max_vel + (level - 1) * 0.2
         self.current_point = 0
 
-
+# Função para desenhar os elementos do jogo na janela, incluindo o fundo, a pista, o ponto de chegada, 
+# as informações do jogo e os carros do jogador e do computador
 def draw(win, images, player_car, computer_car, game_info):
     for img, pos in images:
         win.blit(img, pos)
@@ -200,26 +206,27 @@ def draw(win, images, player_car, computer_car, game_info):
     computer_car.draw(win)
     pygame.display.update()
 
-
+# Função para mover o carro do jogador, verificando as teclas pressionadas e chamando as funções de rotação e movimento correspondentes
 def move_player(player_car):
     keys = pygame.key.get_pressed()
     moved = False
 
-    if keys[pygame.K_a]:
+    if keys[pygame.K_a]: # Se a tecla A estiver pressionada, o carro do jogador irá rotacionar para a esquerda
         player_car.rotate(left=True)
-    if keys[pygame.K_d]:
+    if keys[pygame.K_d]: # Se a tecla D estiver pressionada, o carro do jogador irá rotacionar para a direita
         player_car.rotate(right=True)
     if keys[pygame.K_w]:
-        moved = True
+        moved = True # Se a tecla W estiver pressionada, o carro do jogador irá se mover para frente
         player_car.move_forward()
     if keys[pygame.K_s]:
-        moved = True
+        moved = True # Se a tecla S estiver pressionada, o carro do jogador irá se mover para trás
         player_car.move_backward()
 
     if not moved:
         player_car.reduce_speed()
 
-
+# Função para lidar com as colisões do carro do jogador e do carro do computador, 
+# verificando se eles colidiram com a borda da pista ou com o ponto de chegada e reagindo de acordo
 def handle_collision(player_car, computer_car, game_info):
     if player_car.collide(TRACK_BORDER_MASK) != None:
         player_car.bounce()
@@ -245,14 +252,14 @@ def handle_collision(player_car, computer_car, game_info):
             computer_car.next_level(game_info.level)
 
 
-run = True
-clock = pygame.time.Clock()
+run = True # Variável para controlar o loop principal do jogo, permitindo que ele continue rodando até que o jogador decida sair
+clock = pygame.time.Clock() # Objeto para controlar o tempo do jogo, garantindo que ele rode a uma taxa de quadros constante (FPS)
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)),
           (FINISH, FINISH_POSITION), (TRACK_BORDER, (0, 0))]
-player_car = PlayerCar(4, 4)
+player_car = PlayerCar(4, 4) 
 computer_car = ComputerCar(2, 4, PATH)
 game_info = GameInfo()
-
+# Loop principal do jogo, onde são processados os eventos, atualizados os estados dos objetos e desenhados os elementos na janela
 while run:
     clock.tick(FPS)
 
