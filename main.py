@@ -1,4 +1,4 @@
-import pygame
+import pygame 
 import time
 import math
 from game_info import GameInfo
@@ -28,7 +28,7 @@ MAIN_FONT = pygame.font.SysFont("Arial", 50)
 # escolher a cor da fonte e o tamanho do texto a ser exibido na tela, utilizando a fonte Arial com tamanho 50
 
 # Configurações do jogo
-FPS = 60
+FPS = 60 # Taxa de quadros por segundo, controlando a velocidade do jogo e garantindo que ele rode de forma suave e consistente em diferentes computadores
 # Caminho para o carro do computador seguir
 PATH = [(175, 119), (110, 70), (56, 133), (70, 481), (318, 731), (404, 680), (418, 521), (507, 475), (600, 551), (613, 715), (736, 713),
         (734, 399), (611, 357), (409, 343), (433, 257), (697, 258), (738, 123), (581, 71), (303, 78), (275, 377), (176, 388), (178, 260)]
@@ -52,31 +52,33 @@ class AbstractCar:
             self.angle -= self.rotation_vel
 # Função para desenhar o carro na janela, utilizando a função blit_rotate_center para rotacionar a imagem do carro 
     def draw(self, win):
-        blit_rotate_center(win, self.img, (self.x, self.y), self.angle)
+        blit_rotate_center(win, self.img, (self.x, self.y), self.angle) # Desenha o carro na janela, rotacionanndo a imagem 
 
     def move_forward(self):
-        self.vel = min(self.vel + self.acceleration, self.max_vel)
+        self.vel = min(self.vel + self.acceleration, self.max_vel) # Aumenta a velocidade do carro
+        self.move() # Chama a função de movimento para atualizar a posição do carro com base na nova velocidade
+
+    def move_backward(self): # Diminui a velocidade do carro, permitindo que ele se mova para trás
+        self.vel = max(self.vel - self.acceleration, -self.max_vel/2) # A velocidade de movimento para trás é limitada a metade da velocidade máxima para frente
         self.move()
 
-    def move_backward(self):
-        self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
-        self.move()
+    def move(self): # Calcula a nova posição do carro com base na velocidade atual
+        radians = math.radians(self.angle) # Converte o ângulo do carro de graus para radianos, necessário para calcular a direção do movimento
+        vertical = math.cos(radians) * self.vel # Calcula o componente vertical do movimento com base no ângulo e na velocidade
+        horizontal = math.sin(radians) * self.vel # Calcula o componente horizontal do movimento com base no ângulo e na velocidade
 
-    def move(self):
-        radians = math.radians(self.angle)
-        vertical = math.cos(radians) * self.vel
-        horizontal = math.sin(radians) * self.vel
+        self.y -= vertical # Atualiza a posição vertical do carro
+        self.x -= horizontal # Atualiza a posição horizontal do carro
 
-        self.y -= vertical
-        self.x -= horizontal
-
-    def collide(self, mask, x=0, y=0):
-        car_mask = pygame.mask.from_surface(self.img)
-        offset = (int(self.x - x), int(self.y - y))
-        poi = mask.overlap(car_mask, offset)
+    def collide(self, mask, x=0, y=0): # Verifica a colisão do carro
+        car_mask = pygame.mask.from_surface(self.img) # Cria uma máscara para o carro com base na imagem, permitindo verificar a colisão pixel a pixel
+        offset = (int(self.x - x), int(self.y - y)) # Calcula o deslocamento entre a posição do carro e a máscara de colisão
+        poi = mask.overlap(car_mask, offset) 
         return poi
 
-    def reset(self):
+# Função para resetar a posição, o ângulo e a velocidade do carro, 
+# utilizada quando o jogador perde ou avança para o próximo nível
+    def reset(self): 
         self.x, self.y = self.START_POS
         self.angle = 0
         self.vel = 0
@@ -84,14 +86,14 @@ class AbstractCar:
 # Classe para representar o carro do jogador, com funcionalidades específicas para o controle do jogador, 
 # como reduzir a velocidade e rebater ao colidir com a borda da pista
 class PlayerCar(AbstractCar):
-    IMG = RED_CAR
-    START_POS = (180, 200)
+    IMG = RED_CAR # Carro do jogador
+    START_POS = (180, 200) # Posição inicial do carro do jogador na pista
 
     def reduce_speed(self):
         self.vel = max(self.vel - self.acceleration / 2, 0)
         self.move() 
 
-    def bounce(self):
+    def bounce(self): # Inverte a velocidade do carro, fazendo com que ele rebata ao colidir com a borda da pista
         self.vel = -self.vel
         self.move()
 
@@ -120,9 +122,9 @@ class ComputerCar(AbstractCar):
         y_diff = target_y - self.y
 #
         if y_diff == 0:
-            desired_radian_angle = math.pi / 2
+            desired_radian_angle = math.pi / 2 # Se a diferença vertical for zero, o ângulo desejado é de 90 graus (pi/2 radianos)
         else:
-            desired_radian_angle = math.atan(x_diff / y_diff)
+            desired_radian_angle = math.atan(x_diff / y_diff) 
 
         if target_y > self.y:
             desired_radian_angle += math.pi
@@ -162,7 +164,7 @@ class ComputerCar(AbstractCar):
 def draw(win, images, player_car, computer_car, game_info):
     for img, pos in images:
         win.blit(img, pos)
-
+# Desenha as informações do jogo, como o nível atual, o tempo decorrido e a velocidade do carro do jogador, na parte inferior da janela
     level_text = MAIN_FONT.render(
         f"Level {game_info.level}", 1, (255, 255, 255))
     win.blit(level_text, (10, HEIGHT - level_text.get_height() - 70))
@@ -174,7 +176,7 @@ def draw(win, images, player_car, computer_car, game_info):
     vel_text = MAIN_FONT.render(
         f"Vel: {round(player_car.vel, 1)}px/s", 1, (255, 255, 255))
     win.blit(vel_text, (10, HEIGHT - vel_text.get_height() - 10))
-
+# Desenha os carros do jogador e do computador na janela
     player_car.draw(win)
     computer_car.draw(win)
     pygame.display.update()
@@ -238,7 +240,7 @@ while run:
 
     draw(WIN, images, player_car, computer_car, game_info)
 
-    while not game_info.started:
+    while not game_info.started: # Loop para exibir a mensagem de inicio do nivel e aguardar o jogador pressionar uma tecla para começar
         blit_text_center(
             WIN, MAIN_FONT, f"Press any key to start level {game_info.level}!")
         pygame.display.update()
